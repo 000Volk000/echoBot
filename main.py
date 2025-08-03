@@ -73,9 +73,9 @@ También tengo eventos que se activan automáticamente pero tendréis que descub
 @bot.hybrid_command(name="saluda", description="👋 Saluda a otro usuario del servidor o en general")
 async def saluda(ctx: commands.Context, usuario: discord.Member = None):
     if usuario is None:
-        message = f"{ctx.author.mention} quiere saludar en general"
+        message = f"👋 {ctx.author.mention} quiere saludar al servidor en general 👋"
     else:
-        message = f"{ctx.author.mention} te quiere saludar {usuario.mention}"
+        message = f"{ctx.author.mention} te quiere saludar solo a tí {usuario.mention} 🫵👋"
 
     await ctx.send(message)
 
