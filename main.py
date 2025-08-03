@@ -40,6 +40,9 @@ async def on_message(message):
         await message.delete()
         await message.channel.send(f"¿De que vas {message.author.mention}?, aquí el unico que saluda soy yo")
 
+    if "jaime" in message.content.lower():
+        await message.reply("<:uh:1391363166910283799>")
+
     await bot.process_commands(message)
 
 # Run the bot
