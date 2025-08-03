@@ -25,6 +25,11 @@ bot = commands.Bot(command_prefix='/', intents=intents)
 async def on_ready():
     print(f'Estamos ready para funcionar, {bot.user.name}')
 
+## Event when a new member joins
+@bot.event
+async def on_member_join(member):
+    await member.send(f"Bienvenido al *{member.guild.name}*, {member.name}, ponte cómodo aunque no demasiado.")
+
 # Run the bot
 if __name__ == "__main__":
     if token:
