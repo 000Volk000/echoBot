@@ -51,6 +51,23 @@ async def on_message(message):
     await bot.process_commands(message)
 
 # Handling commands
+## Command to get the help message
+@bot.hybrid_command(name="ayuda", description="ℹ️ Muestra este mensaje de ayuda")
+async def ayuda(ctx: commands.Context):
+    help_message = """Ahora mismo no hago mucho, pero iré aprendiendo.
+
+Hay 2 formas de interactuar conmigo:
+1. **Comandos de barra**: Usa `/` seguido del comando.
+2. **Comandos de prefijo**: Usa `!` seguido del comando.
+
+Puedes usar los siguientes comandos:
+- **ayuda**: Muestra este mensaje de ayuda.
+- **saluda**: Saluda en general.
+- **saluda @usuario**: Saluda a un usuario del servidor.
+
+También tengo eventos que se activan automáticamente pero tendréis que descubrirlos."""
+    await ctx.send(help_message)
+
 ## Command to greet a user or in general
 @bot.hybrid_command(name="saluda", description="👋 Saluda a otro usuario del servidor o en general")
 async def saluda(ctx: commands.Context, usuario: discord.Member = None):
