@@ -30,6 +30,18 @@ async def on_ready():
 async def on_member_join(member):
     await member.send(f"Bienvenido al *{member.guild.name}*, {member.name}, ponte cómodo aunque no demasiado.")
 
+## Event when a message is sent
+@bot.event
+async def on_message(message):
+    if message.author == bot.user:
+        return
+
+    if "hola" in message.content.lower():
+        await message.delete()
+        await message.channel.send(f"¿De que vas {message.author.mention}?, aquí el unico que saluda soy yo")
+
+    await bot.process_commands(message)
+
 # Run the bot
 if __name__ == "__main__":
     if token:
