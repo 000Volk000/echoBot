@@ -45,14 +45,15 @@ async def on_message(message):
         await message.delete()
         await message.channel.send(f"¿De que vas {message.author.mention}?, aquí el unico que saluda soy yo.\n\nSi quieres saludar a alguien, usa el comando `/saluda`")
 
-    if "jaime" in message.content.lower() or f"<@{390909965038125059}>" in message.content or f"<@!{390909965038125059}>" in message.content:
-        await message.reply("<:uh:1391363166910283799>")
+    else:
+        if "jaime" in message.content.lower() or f"<@{390909965038125059}>" in message.content or f"<@!{390909965038125059}>" in message.content or message.author.id == 390909965038125059:
+            await message.reply("<:uh:1391363166910283799>")
 
     await bot.process_commands(message)
 
 # Handling commands
 ## Command to get the help message
-@bot.hybrid_command(name="ayuda", description="ℹ️ Muestra este mensaje de ayuda")
+@bot.hybrid_command(name="ayuda", description="🆘 Muestra un mensaje de ayuda")
 async def ayuda(ctx: commands.Context):
     help_message = """Ahora mismo no hago mucho, pero iré aprendiendo.
 
