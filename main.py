@@ -10,7 +10,7 @@ from datetime import datetime
 # Load environment variables
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
-jaimeId = os.getenv("JAIME_USER_ID")
+jaimeId = int(os.getenv("JAIME_USER_ID"))
 mudaeRol = "MudaeSubscribed"
 mudaeSubId = 1408437418289528934
 mudaeEditId = 1408437424107028552
