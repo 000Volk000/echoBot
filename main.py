@@ -69,7 +69,7 @@ Puedes usar los siguientes comandos:
 - **saluda @usuario**: Saluda a un usuario del servidor.
 - **asigna**: Te asigna el rol *{mudaeRol}*.
 - **quita**: Te quita el rol *{mudaeRol}*.
-- **encuesta "pregunta"**: Crea una encuesta con la pregunta proporcionada.
+- **encuesta "pregunta"**: Crea una encuesta de sí o no con la pregunta proporcionada.
 
 También tengo eventos que se activan automáticamente pero tendréis que descubrirlos."""
     await ctx.send(help_message)
