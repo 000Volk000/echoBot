@@ -55,9 +55,16 @@ async def on_message(message):
         if "eran intermedios" in message.content.lower():
             await message.add_reaction("<:eran_intermedios:1408413491555078305>")
 
-        if "fernando" in message.content.lower() or "alonso" in message.content.lower() or "33" in message.content.lower() or "adrian newey" in message.content.lower() or mathparse.parse(message.content) == 33:
+        if "fernando" in message.content.lower() or "alonso" in message.content.lower() or "33" in message.content.lower() or "adrian newey" in message.content.lower():
             sticker = await bot.fetch_sticker(1408397918658105406)
             await message.reply(stickers=[sticker])
+        else:
+            try:
+                if mathparse.parse(message.content) == 33:
+                    sticker = await bot.fetch_sticker(1408397918658105406)
+                    await message.reply(stickers=[sticker])
+            except Exception as e:
+                print(f"Error processing mathparse: {e}")
 
     await bot.process_commands(message)
 
