@@ -83,6 +83,7 @@ async def saluda(ctx: commands.Context, usuario: discord.Member = None):
 
     await ctx.send(message)
 
+## Command to assign the mudae role
 @bot.hybrid_command(name="asigna", description=f"🔧 Te asigna el rol {mudaeRol}")
 async def asigna(ctx):
     rol = discord.utils.get(ctx.guild.roles, name=mudaeRol)
@@ -92,6 +93,7 @@ async def asigna(ctx):
     else:
         await ctx.send(f"El rol **{mudaeRol}** no existe en este servidor 🕴️")
 
+## Command to remove the mudae role
 @bot.hybrid_command(name="quita", description=f"🔧 Te quita el rol {mudaeRol}")
 async def quita(ctx):
     rol = discord.utils.get(ctx.guild.roles, name=mudaeRol)
