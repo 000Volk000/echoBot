@@ -1,18 +1,40 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 import logging
 from dotenv import load_dotenv
 import os
 from mathparse import mathparse
+import json
+from datetime import datetime
 
 # Load environment variables
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
 jaimeId = os.getenv("JAIME_USER_ID")
 mudaeRol = "MudaeSubscribed"
-mudaeSubId = ...
-mudaeEditId = ...
-mudaeChannelId = ...
+mudaeSubId = 1408437418289528934
+mudaeEditId = 1408437424107028552
+mudaeChannelId = 1408380741334728704
+
+# File to store the last claim message ID
+CLAIM_MESSAGE_FILE = "last_claim_message.json"
+
+# Function to load the last claim message ID from file
+def load_claim_message_id():
+    try:
+        with open(CLAIM_MESSAGE_FILE, 'r') as f:
+            data = json.load(f)
+            return data.get('message_id')
+    except (FileNotFoundError, json.JSONDecodeError):
+        return None
+
+# Function to save the last claim message ID to file
+def save_claim_message_id(message_id):
+    try:
+        with open(CLAIM_MESSAGE_FILE, 'w') as f:
+            json.dump({'message_id': message_id}, f)
+    except Exception as e:
+        print(f"Error saving claim message ID: {e}")
 
 # Set up basic logging
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
@@ -25,6 +47,51 @@ intents.members = True
 # Initialize bot
 bot = commands.Bot(command_prefix='!', intents=intents)
 
+# Scheduled task for mudae claim reset notification
+@tasks.loop(hours=3)
+async def mudae_claim_reset():
+    channel = bot.get_channel(mudaeChannelId)
+
+    last_message_id = load_claim_message_id()
+    if last_message_id:
+        last_message = await channel.fetch_message(last_message_id)
+        await last_message.delete()
+
+    message = await channel.send("<@&1408382042739183648> el claim del mudae ha sido reiniciado")
+    save_claim_message_id(message.id)
+
+@mudae_claim_reset.before_loop
+async def before_mudae_claim_reset():
+    await bot.wait_until_ready()
+
+    now = datetime.now()
+    current_hour = now.hour
+    next_3h_mark = ((current_hour // 3) + 1) * 3
+
+    if next_3h_mark >= 24:
+        next_3h_mark = 0
+
+    hours_to_wait = (next_3h_mark - current_hour - 1 + 24) % 24
+    minutes_to_wait = 60 - now.minute + 5
+    seconds_to_wait = 60 - now.second
+
+    if seconds_to_wait == 60:
+        seconds_to_wait = 0
+        minutes_to_wait += 1
+
+    if minutes_to_wait == 60:
+        minutes_to_wait = 0
+        hours_to_wait = (hours_to_wait + 1) % 24
+
+    total_seconds = hours_to_wait * 3600 + minutes_to_wait * 60 + seconds_to_wait
+
+    print(f"Current time: {now.strftime('%H:%M:%S')}")
+    print(f"Next 3-hour mark: {next_3h_mark:02d}:05:00")
+    print(f"Waiting {hours_to_wait}h {minutes_to_wait}m {seconds_to_wait}s before starting mudae claim reset task")
+
+    import asyncio
+    await asyncio.sleep(total_seconds)
+
 # Handling events
 ## Event when the bot is ready
 @bot.event
@@ -35,6 +102,10 @@ async def on_ready():
         print(f"Synced {len(synced)} command(s)")
     except Exception as e:
         print(f"Failed to sync commands: {e}")
+
+    if not mudae_claim_reset.is_running():
+        mudae_claim_reset.start()
+        print("Started mudae claim reset task")
 
 ## Event when a new member joins
 @bot.event
