@@ -52,6 +52,9 @@ async def on_message(message):
         if "jaime" in message.content.lower() or f"<@{jaimeId}>" in message.content or f"<@!{jaimeId}>" in message.content or message.author.id == jaimeId:
             await message.reply("<:uh:1391363166910283799>")
 
+        if "eran intermedios" in message.content.lower():
+            await message.add_reaction("<:eran_intermedios:1408413491555078305>")
+
         if "fernando" in message.content.lower() or "alonso" in message.content.lower() or "33" in message.content.lower() or "adrian newey" in message.content.lower() or mathparse.parse(message.content) == 33:
             sticker = await bot.fetch_sticker(1408397918658105406)
             await message.reply(stickers=[sticker])
