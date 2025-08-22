@@ -10,6 +10,9 @@ load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
 jaimeId = os.getenv("JAIME_USER_ID")
 mudaeRol = "MudaeSubscribed"
+mudaeSubId = ...
+mudaeEditId = ...
+mudaeChannelId = ...
 
 # Set up basic logging
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
@@ -68,7 +71,47 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-# Handling commands
+## Event for reacting to the mudae message
+@bot.event
+async def on_raw_reaction_add(payload):
+    if payload.user_id == bot.user.id:
+        return
+
+    if payload.message_id == mudaeSubId:
+        guild = bot.get_guild(payload.guild_id)
+        user = guild.get_member(payload.user_id)
+
+        if user is user.bot:
+            return
+
+        emoji_str = str(payload.emoji)
+        if emoji_str == "✔️":
+            rol = discord.utils.get(guild.roles, name=mudaeRol)
+            if rol:
+                await user.add_roles(rol)
+        elif emoji_str == "❌":
+            rol = discord.utils.get(guild.roles, name=mudaeRol)
+            if rol:
+                await user.remove_roles(rol)
+
+## Event for handling mudaeRol added or removed
+@bot.event
+async def on_member_update(before, after):
+    if before.roles != after.roles:
+        rol_before = discord.utils.get(before.roles, name=mudaeRol)
+        rol_after = discord.utils.get(after.roles, name=mudaeRol)
+
+        if rol_before is None and rol_after is not None:
+            channel = bot.get_channel(mudaeChannelId)
+            message = await channel.fetch_message(mudaeEditId)
+            await message.edit(content=f"> Actualmente hay **{len([member for member in after.guild.members if discord.utils.get(member.roles, name=mudaeRol)])}** usuarios con el rol.")
+
+        elif rol_before is not None and rol_after is None:
+            channel = bot.get_channel(mudaeChannelId)
+            message = await channel.fetch_message(mudaeEditId)
+            await message.edit(content=f"> Actualmente hay **{len([member for member in after.guild.members if discord.utils.get(member.roles, name=mudaeRol)])}** usuarios con el rol.")
+
+# Handling command
 ## Command to get the help message
 @bot.hybrid_command(name="ayuda", description="🆘 Muestra un mensaje de ayuda")
 async def ayuda(ctx: commands.Context):
