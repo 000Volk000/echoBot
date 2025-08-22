@@ -7,6 +7,7 @@ import os
 # Load environment variables
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
+jaimeId = os.getenv("JAIME_USER_ID")
 
 # Set up basic logging
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
@@ -46,7 +47,7 @@ async def on_message(message):
         await message.channel.send(f"¿De que vas {message.author.mention}?, aquí el unico que saluda soy yo.\n\nSi quieres saludar a alguien, usa el comando `/saluda`")
 
     else:
-        if "jaime" in message.content.lower() or f"<@{390909965038125059}>" in message.content or f"<@!{390909965038125059}>" in message.content or message.author.id == 390909965038125059:
+        if "jaime" in message.content.lower() or f"<@{jaimeId}>" in message.content or f"<@!{jaimeId}>" in message.content or message.author.id == jaimeId:
             await message.reply("<:uh:1391363166910283799>")
 
     await bot.process_commands(message)
