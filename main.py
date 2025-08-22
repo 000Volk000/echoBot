@@ -69,6 +69,7 @@ Puedes usar los siguientes comandos:
 - **saluda @usuario**: Saluda a un usuario del servidor.
 - **asigna**: Te asigna el rol *{mudaeRol}*.
 - **quita**: Te quita el rol *{mudaeRol}*.
+- **encuesta "pregunta"**: Crea una encuesta con la pregunta proporcionada.
 
 También tengo eventos que se activan automáticamente pero tendréis que descubrirlos."""
     await ctx.send(help_message)
@@ -102,6 +103,17 @@ async def quita(ctx):
         await ctx.send(f"Rol **{mudaeRol}** quitado a {ctx.author.mention} 🕴️")
     else:
         await ctx.send(f"El rol **{mudaeRol}** no existe en este servidor 🕴️")
+
+## Command to make a poll
+@bot.hybrid_command(name="encuesta", description="🗳️ Crea una encuesta")
+async def encuesta(ctx: commands.Context, *, pregunta: str=None):
+    if pregunta is not None:
+        embed = discord.Embed(title="Encuesta", description=pregunta, color=discord.Color.yellow())
+        message = await ctx.send(embed=embed)
+        await message.add_reaction("👍")
+        await message.add_reaction("👎")
+    else:
+        await ctx.send("Por favor, proporciona una pregunta para la encuesta 😡")
 
 # Run the bot
 if __name__ == "__main__":
