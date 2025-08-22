@@ -8,6 +8,7 @@ import os
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
 jaimeId = os.getenv("JAIME_USER_ID")
+mudaeRol = "MudaeSubscribed"
 
 # Set up basic logging
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
@@ -56,7 +57,7 @@ async def on_message(message):
 ## Command to get the help message
 @bot.hybrid_command(name="ayuda", description="🆘 Muestra un mensaje de ayuda")
 async def ayuda(ctx: commands.Context):
-    help_message = """Ahora mismo no hago mucho, pero iré aprendiendo.
+    help_message = f"""Ahora mismo no hago mucho, pero iré aprendiendo.
 
 Hay 2 formas de interactuar conmigo:
 1. **Comandos de barra**: Usa `/` seguido del comando.
@@ -66,6 +67,8 @@ Puedes usar los siguientes comandos:
 - **ayuda**: Muestra este mensaje de ayuda.
 - **saluda**: Saluda en general.
 - **saluda @usuario**: Saluda a un usuario del servidor.
+- **asigna**: Te asigna el rol *{mudaeRol}*.
+- **quita**: Te quita el rol *{mudaeRol}*.
 
 También tengo eventos que se activan automáticamente pero tendréis que descubrirlos."""
     await ctx.send(help_message)
@@ -79,6 +82,24 @@ async def saluda(ctx: commands.Context, usuario: discord.Member = None):
         message = f"{ctx.author.mention} te quiere saludar solo a tí {usuario.mention} 🫵👋"
 
     await ctx.send(message)
+
+@bot.hybrid_command(name="asigna", description=f"🔧 Te asigna el rol {mudaeRol}")
+async def asigna(ctx):
+    rol = discord.utils.get(ctx.guild.roles, name=mudaeRol)
+    if rol:
+        await ctx.author.add_roles(rol)
+        await ctx.send(f"Rol **{mudaeRol}** asignado a {ctx.author.mention} 🕴️")
+    else:
+        await ctx.send(f"El rol **{mudaeRol}** no existe en este servidor 🕴️")
+
+@bot.hybrid_command(name="quita", description=f"🔧 Te quita el rol {mudaeRol}")
+async def quita(ctx):
+    rol = discord.utils.get(ctx.guild.roles, name=mudaeRol)
+    if rol:
+        await ctx.author.remove_roles(rol)
+        await ctx.send(f"Rol **{mudaeRol}** quitado a {ctx.author.mention} 🕴️")
+    else:
+        await ctx.send(f"El rol **{mudaeRol}** no existe en este servidor 🕴️")
 
 # Run the bot
 if __name__ == "__main__":
