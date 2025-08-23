@@ -93,6 +93,39 @@ async def before_mudae_claim_reset():
 
     await asyncio.sleep(total_seconds)
 
+# Scheduled task for bingbong playing every hour
+@tasks.loop(hours=1)
+async def bingbong_play():
+    for guild in bot.guilds:
+        for channel in guild.voice_channels:
+            if len(channel.members) > 0:
+                voice_client = await channel.connect()
+                music_folder = "sounds/bingbong"
+                music_files = sorted([f for f in os.listdir(music_folder) if f.endswith(".mp3")])
+                selected_song = random.choices(music_files, weights=[99.99, 0.01], k=1)[0]
+
+                while not voice_client.is_connected():
+                    await asyncio.sleep(0.1)
+
+                voice_client.play(discord.FFmpegPCMAudio(os.path.join(music_folder, selected_song)))
+
+                while voice_client.is_playing():
+                    await asyncio.sleep(0.1)
+
+                await voice_client.disconnect()
+
+@bingbong_play.before_loop
+async def before_bingbong_play():
+    await bot.wait_until_ready()
+    now = datetime.now()
+    minutes_to_wait = 60 - now.minute
+    seconds_to_wait = 60 - now.second
+    total_seconds = minutes_to_wait * 60 + seconds_to_wait
+
+    print(f"Current time: {now.strftime('%H:%M:%S')}")
+    print(f"Waiting {minutes_to_wait}m {seconds_to_wait}s before starting bingbong play task")
+    await asyncio.sleep(total_seconds)
+
 # Handling events
 ## Event when the bot is ready
 @bot.event
@@ -107,6 +140,10 @@ async def on_ready():
     if not mudae_claim_reset.is_running():
         mudae_claim_reset.start()
         print("Started mudae claim reset task")
+
+    if not bingbong_play.is_running():
+        bingbong_play.start()
+        print("Started bingbong play task")
 
 ## Event when a new member joins
 @bot.event
@@ -200,6 +237,7 @@ Puedes usar los siguientes comandos:
 - **asigna**: Te asigna el rol *{mudaeRol}*.
 - **quita**: Te quita el rol *{mudaeRol}*.
 - **encuesta "pregunta"**: Crea una encuesta de sí o no con la pregunta proporcionada.
+- **bingbong**: 🕰️ Bing Bong 🕰️
 
 También tengo eventos que se activan automáticamente pero tendréis que descubrirlos."""
     await ctx.send(help_message)
