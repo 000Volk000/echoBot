@@ -6,6 +6,7 @@ import os
 from mathparse import mathparse
 import json
 from datetime import datetime
+import random
 
 # Load environment variables
 load_dotenv()
@@ -72,7 +73,7 @@ async def before_mudae_claim_reset():
         next_3h_mark = 0
 
     hours_to_wait = (next_3h_mark - current_hour - 1 + 24) % 24
-    minutes_to_wait = 60 - now.minute + 5
+    minutes_to_wait = 60 - now.minute + 4
     seconds_to_wait = 60 - now.second
 
     if seconds_to_wait == 60:
@@ -243,6 +244,24 @@ async def encuesta(ctx: commands.Context, *, pregunta: str=None):
         await message.add_reaction("👎")
     else:
         await ctx.send("Por favor, proporciona una pregunta para la encuesta 😡")
+
+## Command to join the voice chat, play one of the .mp3 randomly and disconnect
+@bot.hybrid_command(name="bingbong", description="🕰️ Bing Bong 🕰️")
+async def bingbong(ctx: commands.Context):
+    if ctx.author.voice:
+        channel = ctx.author.voice.channel
+        voice_client = await channel.connect()
+        music_folder = "sounds/bingbong"
+        music_files = sorted([f for f in os.listdir(music_folder) if f.endswith(".mp3")])
+        selected_song = random.choices(music_files, weights=[99.99, 0.01], k=1)[0]
+        import asyncio
+        await asyncio.sleep(2)
+        voice_client.play(discord.FFmpegPCMAudio(os.path.join(music_folder, selected_song)))
+        await ctx.send("🕰️ Bing Bong 🕰️")
+        await asyncio.sleep(5)
+        await voice_client.disconnect()
+    else:
+        await ctx.send("🕰️ Bing Bong 🕰️")
 
 # Run the bot
 if __name__ == "__main__":
