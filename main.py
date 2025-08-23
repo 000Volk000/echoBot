@@ -7,6 +7,7 @@ from mathparse import mathparse
 import json
 from datetime import datetime
 import random
+import asyncio
 
 # Load environment variables
 load_dotenv()
@@ -90,7 +91,6 @@ async def before_mudae_claim_reset():
     print(f"Next 3-hour mark: {next_3h_mark:02d}:05:00")
     print(f"Waiting {hours_to_wait}h {minutes_to_wait}m {seconds_to_wait}s before starting mudae claim reset task")
 
-    import asyncio
     await asyncio.sleep(total_seconds)
 
 # Handling events
@@ -254,11 +254,16 @@ async def bingbong(ctx: commands.Context):
         music_folder = "sounds/bingbong"
         music_files = sorted([f for f in os.listdir(music_folder) if f.endswith(".mp3")])
         selected_song = random.choices(music_files, weights=[99.99, 0.01], k=1)[0]
-        import asyncio
-        await asyncio.sleep(2)
+
+        while not voice_client.is_connected():
+            await asyncio.sleep(0.1)
+
         voice_client.play(discord.FFmpegPCMAudio(os.path.join(music_folder, selected_song)))
         await ctx.send("🕰️ Bing Bong 🕰️")
-        await asyncio.sleep(5)
+
+        while voice_client.is_playing():
+            await asyncio.sleep(0.1)
+
         await voice_client.disconnect()
     else:
         await ctx.send("🕰️ Bing Bong 🕰️")
