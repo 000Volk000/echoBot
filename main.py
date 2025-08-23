@@ -118,8 +118,8 @@ async def bingbong_play():
 async def before_bingbong_play():
     await bot.wait_until_ready()
     now = datetime.now()
-    minutes_to_wait = 60 - now.minute
-    seconds_to_wait = 60 - now.second
+    minutes_to_wait = 59 - now.minute
+    seconds_to_wait = 59 - now.second
     total_seconds = minutes_to_wait * 60 + seconds_to_wait
 
     print(f"Current time: {now.strftime('%H:%M:%S')}")
