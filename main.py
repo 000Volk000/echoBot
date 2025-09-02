@@ -25,9 +25,6 @@ CLAIM_MESSAGE_FILE = "last_claim_message.json"
 def hasComma(text):
     return ',' in text
 
-
-
-
 # Function to load the last claim message ID from file
 def load_claim_message_id():
     try:
@@ -185,12 +182,10 @@ async def on_message(message):
             except Exception as e:
                 print(f"Error processing mathparse: {e}")
 
-
-#If the message has de wish part and contains a comma is a multiple wish
     if "Wished by" in message.content and hasComma(message.content):
-        await message.channel.send(f":star: Wish de varias personas contanto hasta 10 :alarm_clock:  para que lo pueda pillar un tercero:star: \n")
+        await message.channel.send(f":star: Wish de varias personas contanto hasta 10 :alarm_clock: para que lo pueda pillar un tercero :star:\n")
         await asyncio.sleep(10)
-        await message.channel.send(f":japanese_goblin: 10 segs cumplidos puede pillarlo un tercero:japanese_goblin: ")
+        await message.channel.send(f":japanese_goblin: 10 segs cumplidos puede pillarlo un tercero :japanese_goblin:")
 
     await bot.process_commands(message)
 
@@ -320,10 +315,6 @@ async def bingbong(ctx: commands.Context):
     else:
         await ctx.send("🕰️ Bing Bong 🕰️")
 
-
-
-
-
 # Run the bot
 if __name__ == "__main__":
     if token:
@@ -331,5 +322,3 @@ if __name__ == "__main__":
     else:
         print("Error: DISCORD_TOKEN not found in environment variables.")
         exit(1)
-
-
