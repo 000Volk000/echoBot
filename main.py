@@ -188,9 +188,9 @@ async def on_message(message):
 
 #If the message has de wish part and contains a comma is a multiple wish
     if "Wished by" in message.content and hasComma(message.content):
-        await message.channel.send(f"Wish de varias personas contanto hasta 10 para que lo pueda pillar un tercero\n")
+        await message.channel.send(f":star: Wish de varias personas contanto hasta 10 :alarm_clock:  para que lo pueda pillar un tercero:star: \n")
         await asyncio.sleep(10)
-        await message.channel.send(f"10 segs cumplidos puede pillarlo un tercero")
+        await message.channel.send(f":japanese_goblin: 10 segs cumplidos puede pillarlo un tercero:japanese_goblin: ")
 
     await bot.process_commands(message)
 
