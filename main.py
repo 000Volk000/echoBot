@@ -362,10 +362,13 @@ async def countdown_task():
         if countdown_state != "hourly":
             countdown_state = "hourly"
             print(f"\nChanged countdown state to {countdown_state}")
-            countdown_task.change_interval(seconds=3600)
+            first=True
 
         if total_seconds % 3600 == 0:
             await channel.send(f"⏰ Falta {time_str} para la salida de Silksong")
+            if first:
+                countdown_task.change_interval(seconds=3600)
+                first=False
 
     elif total_seconds >= 60:
         if countdown_state != "minute":
