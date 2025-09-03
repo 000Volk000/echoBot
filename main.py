@@ -146,9 +146,26 @@ async def on_ready():
         print("Started bingbong play task")
 
     # Silksong countdown task
-    if not countdown_task.is_running():
-        countdown_task.start()
-        print("Started Silksong countdown task")
+    now = datetime.now()
+    remaining = TARGET_DATE - now
+    global state
+
+    if remaining.total_seconds() <= 0:
+        await final_announcement()
+    elif remaining.total_seconds() < 60:
+        state = "second"
+        if not silksong_countdown_second.is_running():
+            silksong_countdown_second.start()
+            print("Started silksong countdown second task")
+    elif remaining.total_seconds() < 3600:
+        state = "minute"
+        if not silksong_countdown_minute.is_running():
+            silksong_countdown_minute.start()
+            print("Started silksong countdown minute task")
+    else:
+        if not silksong_countdown_hourly.is_running():
+            silksong_countdown_hourly.start()
+            print("Started silksong countdown hourly task")
 
 ## Event when a new member joins
 @bot.event
@@ -320,85 +337,145 @@ async def bingbong(ctx: commands.Context):
 ## If 1h or more remaning send a text every hour until less than 1h remaining
 ## If less than 1h remaining send a text every 1 minute until less than 1 minute remaining
 ## If less than 1 minute remaining send a text every 1 second until the event starts
-from datetime import timezone, timedelta
+from datetime import timedelta
+import math
 
 generalChannelId=1225426786490519657
 TARGET_DATE = datetime(2025, 9, 4, 16, 0, 0)
+state="hourly"
 
-countdown_state = "initial"
-
-@tasks.loop(seconds=1)
-async def countdown_task():
-    global countdown_state
-    channel = bot.get_channel(generalChannelId)
-
-    now = datetime.now()
-    time_remaining = TARGET_DATE - now
-
-    if time_remaining.total_seconds() <= 0:
-        if countdown_state != "finished":
-            await channel.send("@everyone")
-            await channel.send("@everyone")
-            await channel.send(":clown: SILKSONG HA SALIDO :flushed:")
-            await channel.send("@everyone")
-            await channel.send("@everyone")
-            countdown_state = "finished"
-            countdown_task.stop()
+@tasks.loop(hours=1)
+async def silksong_countdown_hourly():
+    global state
+    if state != "hourly":
         return
 
-    total_seconds = int(time_remaining.total_seconds())
+    channel = bot.get_channel(generalChannelId)
+    now = datetime.now()
+    remaining = TARGET_DATE - now
+
+    if remaining.total_seconds() <= 0:
+        await final_announcement()
+        return
+
+    if remaining.total_seconds() < 3600:
+        state = "minute"
+        silksong_countdown_hourly.cancel()
+        if not silksong_countdown_minute.is_running():
+            silksong_countdown_minute.start()
+        return
+
+    total_seconds = math.ceil(remaining.total_seconds())
     hours = total_seconds // 3600
     minutes = (total_seconds % 3600) // 60
     seconds = total_seconds % 60
+    time_str = f"{hours}h {minutes}m {seconds}s"
+    await channel.send(f"⏰ Falta {time_str} para la salida de Silksong")
 
-    if hours >= 1:
-        time_str = f"{hours}h {minutes}m {seconds}s"
-    elif minutes >= 1:
-        time_str = f"{minutes}m {seconds}s"
-    else:
-        time_str = f"{seconds}s"
-
-    if total_seconds >= 3600:
-        if countdown_state != "hourly":
-            countdown_state = "hourly"
-            print(f"\nChanged countdown state to {countdown_state}")
-            first=True
-
-        if total_seconds % 3600 == 0:
-            await channel.send(f"⏰ Falta {time_str} para la salida de Silksong")
-            if first:
-                countdown_task.change_interval(seconds=3600)
-                first=False
-
-    elif total_seconds >= 60:
-        if countdown_state != "minute":
-            countdown_state = "minute"
-            print(f"\nChanged countdown state to {countdown_state}")
-            countdown_task.change_interval(seconds=60)
-
-        if total_seconds % 60 == 0:
-            await channel.send(f"⏰ UY UY UY, solo {time_str} para la salida de Silksong")
-
-    else:
-        if countdown_state != "second":
-            countdown_state = "second"
-            print(f"\nChanged countdown state to {countdown_state}")
-            countdown_task.change_interval(seconds=1)
-        await channel.send(f"⏰ DIOS DIOS DIOS {time_str} para la salida de Silksong :scream:")
-
-@countdown_task.before_loop
-async def before_countdown_task():
+@silksong_countdown_hourly.before_loop
+async def before_silksong_countdown_hourly():
     await bot.wait_until_ready()
-
     now = datetime.now()
-    time_remaining = TARGET_DATE - now
+    remaining = TARGET_DATE - now
 
-    if time_remaining.total_seconds() <= 0:
-        print("Event has already started, countdown task will not run")
+    if remaining.total_seconds() <= 0:
+        await final_announcement()
+        silksong_countdown_hourly.cancel()
         return
 
-    print(f"Starting silksong countdown task.")
-    print(f"Time remaining: {time_remaining}")
+    if remaining.total_seconds() < 3600:
+        global state
+        state = "minute"
+        silksong_countdown_hourly.cancel()
+        if not silksong_countdown_minute.is_running():
+            silksong_countdown_minute.start()
+        return
+
+    next_hour = (now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1))
+    wait_seconds = (next_hour - now).total_seconds()
+    print(f"Waiting {int(wait_seconds)}s before starting silksong countdown hourly task")
+    await asyncio.sleep(wait_seconds)
+
+@tasks.loop(minutes=1)
+async def silksong_countdown_minute():
+    global state
+    if state != "minute":
+        return
+
+    channel = bot.get_channel(generalChannelId)
+    now = datetime.now()
+    remaining = TARGET_DATE - now
+
+    if remaining.total_seconds() <= 0:
+        await final_announcement()
+        return
+
+    if remaining.total_seconds() < 60:
+        state = "second"
+        silksong_countdown_minute.cancel()
+        if not silksong_countdown_second.is_running():
+            silksong_countdown_second.start()
+        return
+
+    total_seconds = math.ceil(remaining.total_seconds())
+    minutes = total_seconds // 60
+    seconds = total_seconds % 60
+    time_str = f"{minutes}m {seconds}s"
+    await channel.send(f"⏰ UY UY UY, solo {time_str} para la salida de Silksong")
+
+@silksong_countdown_minute.before_loop
+async def before_silksong_countdown_minute():
+    await bot.wait_until_ready()
+    now = datetime.now()
+    remaining = TARGET_DATE - now
+
+    if remaining.total_seconds() <= 0:
+        await final_announcement()
+        silksong_countdown_minute.cancel()
+        return
+
+    next_minute = (now.replace(second=0, microsecond=0) + timedelta(minutes=1))
+    wait_seconds = (next_minute - now).total_seconds()
+    print(f"Waiting {int(wait_seconds)}s before starting silksong countdown minute task")
+    await asyncio.sleep(wait_seconds)
+
+@tasks.loop(seconds=1)
+async def silksong_countdown_second():
+    global state
+    if state != "second":
+        return
+
+    channel = bot.get_channel(generalChannelId)
+    now = datetime.now()
+    remaining = TARGET_DATE - now
+
+    if remaining.total_seconds() <= 0:
+        await final_announcement()
+        return
+
+    total_seconds = math.ceil(remaining.total_seconds())
+    time_str = f"{total_seconds}s"
+    await channel.send(f"⏰ DIOS DIOS DIOS {time_str} para la salida de Silksong :scream:")
+
+@silksong_countdown_second.before_loop
+async def before_silksong_countdown_second():
+    await bot.wait_until_ready()
+    print("Starting silksong countdown second task immediately")
+
+async def final_announcement():
+    global state
+    state = "finished"
+    silksong_countdown_hourly.cancel()
+    silksong_countdown_minute.cancel()
+    silksong_countdown_second.cancel()
+
+    channel = bot.get_channel(generalChannelId)
+    await channel.send("@everyone")
+    await channel.send("@everyone")
+    await channel.send(":clown: SILKSONG HA SALIDO :flushed:")
+    await channel.send("@everyone")
+    await channel.send("@everyone")
+    print("Finished silksong countdown tasks")
 
 # Run the bot
 if __name__ == "__main__":
