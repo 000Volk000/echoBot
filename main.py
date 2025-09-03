@@ -21,10 +21,6 @@ mudaeChannelId = 1408380741334728704
 # File to store the last claim message ID
 CLAIM_MESSAGE_FILE = "last_claim_message.json"
 
-# Function to see if the content has a ,
-def hasComma(text):
-    return ',' in text
-
 # Function to load the last claim message ID from file
 def load_claim_message_id():
     try:
@@ -78,8 +74,8 @@ async def before_mudae_claim_reset():
         next_3h_mark = 0
 
     hours_to_wait = (next_3h_mark - current_hour - 1 + 24) % 24
-    minutes_to_wait = 60 - now.minute + 4
-    seconds_to_wait = 60 - now.second
+    minutes_to_wait = 59 - now.minute + 5
+    seconds_to_wait = 59 - now.second
 
     if seconds_to_wait == 60:
         seconds_to_wait = 0
@@ -91,7 +87,6 @@ async def before_mudae_claim_reset():
 
     total_seconds = hours_to_wait * 3600 + minutes_to_wait * 60 + seconds_to_wait
 
-    print(f"Current time: {now.strftime('%H:%M:%S')}")
     print(f"Next 3-hour mark: {next_3h_mark:02d}:05:00")
     print(f"Waiting {hours_to_wait}h {minutes_to_wait}m {seconds_to_wait}s before starting mudae claim reset task")
 
@@ -126,7 +121,6 @@ async def before_bingbong_play():
     seconds_to_wait = 59 - now.second
     total_seconds = minutes_to_wait * 60 + seconds_to_wait
 
-    print(f"Current time: {now.strftime('%H:%M:%S')}")
     print(f"Waiting {minutes_to_wait}m {seconds_to_wait}s before starting bingbong play task")
     await asyncio.sleep(total_seconds)
 
@@ -140,6 +134,8 @@ async def on_ready():
         print(f"Synced {len(synced)} command(s)")
     except Exception as e:
         print(f"Failed to sync commands: {e}")
+    now = datetime.now()
+    print(f"Current time: {now.strftime('%H:%M:%S')}\n")
 
     if not mudae_claim_reset.is_running():
         mudae_claim_reset.start()
@@ -148,6 +144,11 @@ async def on_ready():
     if not bingbong_play.is_running():
         bingbong_play.start()
         print("Started bingbong play task")
+
+    # Silksong countdown task
+    if not countdown_task.is_running():
+        countdown_task.start()
+        print("Started Silksong countdown task")
 
 ## Event when a new member joins
 @bot.event
@@ -182,7 +183,7 @@ async def on_message(message):
             except Exception as e:
                 print(f"Error processing mathparse: {e}")
 
-    if "Wished by" in message.content and hasComma(message.content):
+    if "Wished by" in message.content and ">, <" in message.content:
         await message.channel.send(f":star: Wish de varias personas contanto hasta 10 :alarm_clock: para que lo pueda pillar un tercero :star:\n")
         await asyncio.sleep(10)
         await message.channel.send(f":japanese_goblin: 10 segs cumplidos puede pillarlo un tercero :japanese_goblin:")
@@ -314,6 +315,87 @@ async def bingbong(ctx: commands.Context):
         await voice_client.disconnect()
     else:
         await ctx.send("🕰️ Bing Bong 🕰️")
+
+# Countdown until Silksong
+## If 1h or more remaning send a text every hour until less than 1h remaining
+## If less than 1h remaining send a text every 1 minute until less than 1 minute remaining
+## If less than 1 minute remaining send a text every 1 second until the event starts
+from datetime import timezone, timedelta
+
+generalChannelId=1225426786490519657
+TARGET_DATE = datetime(2025, 9, 4, 16, 0, 0)
+
+countdown_state = "initial"
+
+@tasks.loop(seconds=1)
+async def countdown_task():
+    global countdown_state
+    channel = bot.get_channel(generalChannelId)
+
+    now = datetime.now()
+    time_remaining = TARGET_DATE - now
+
+    if time_remaining.total_seconds() <= 0:
+        if countdown_state != "finished":
+            await channel.send("@everyone")
+            await channel.send("@everyone")
+            await channel.send(":clown: SILKSONG HA SALIDO :flushed:")
+            await channel.send("@everyone")
+            await channel.send("@everyone")
+            countdown_state = "finished"
+            countdown_task.stop()
+        return
+
+    total_seconds = int(time_remaining.total_seconds())
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    seconds = total_seconds % 60
+
+    if hours >= 1:
+        time_str = f"{hours}h {minutes}m {seconds}s"
+    elif minutes >= 1:
+        time_str = f"{minutes}m {seconds}s"
+    else:
+        time_str = f"{seconds}s"
+
+    if total_seconds >= 3600:
+        if countdown_state != "hourly":
+            countdown_state = "hourly"
+            print(f"\nChanged countdown state to {countdown_state}")
+            countdown_task.change_interval(seconds=3600)
+
+        if total_seconds % 3600 == 0:
+            await channel.send(f"⏰ Falta {time_str} para la salida de Silksong")
+
+    elif total_seconds >= 60:
+        if countdown_state != "minute":
+            countdown_state = "minute"
+            print(f"\nChanged countdown state to {countdown_state}")
+            countdown_task.change_interval(seconds=60)
+
+        if total_seconds % 60 == 0:
+            await channel.send(f"⏰ UY UY UY, solo {time_str} para la salida de Silksong")
+
+    else:
+        if countdown_state != "second":
+            countdown_state = "second"
+            print(f"\nChanged countdown state to {countdown_state}")
+            countdown_task.change_interval(seconds=1)
+        await channel.send(f"⏰ DIOS DIOS DIOS {time_str} para la salida de Silksong :scream:")
+
+@countdown_task.before_loop
+async def before_countdown_task():
+    await bot.wait_until_ready()
+
+    now = datetime.now()
+    time_remaining = TARGET_DATE - now
+
+    if time_remaining.total_seconds() <= 0:
+        print("Event has already started, countdown task will not run")
+        return
+
+    print(f"Starting silksong countdown task.")
+    print(f"Time remaining: {time_remaining}")
 
 # Run the bot
 if __name__ == "__main__":
