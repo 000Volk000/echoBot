@@ -130,10 +130,13 @@ async def bingbong_play():
 
                     while voice_client.is_playing():
                         await asyncio.sleep(0.1)
-
-                    await voice_client.disconnect()
                 except Exception as e:
                     print(f"Bingbong hourly task failed: {e}")
+
+                try:
+                    await voice_client.disconnect()
+                except Exception as e:
+                    print(f"Bingbong hourly disconnect failed: {e}")
 
 
 @bingbong_play.before_loop
