@@ -109,26 +109,31 @@ async def bingbong_play():
     for guild in bot.guilds:
         for channel in guild.voice_channels:
             if len(channel.members) > 0:
-                voice_client = await channel.connect()
-                music_folder = "sounds/bingbong"
-                music_files = sorted(
-                    [f for f in os.listdir(music_folder) if f.endswith(".mp3")]
-                )
-                selected_song = random.choices(music_files, weights=[99.99, 0.01], k=1)[
-                    0
-                ]
+                try:
+                    voice_client = await channel.connect()
+                    music_folder = "sounds/bingbong"
+                    music_files = sorted(
+                        [f for f in os.listdir(music_folder) if f.endswith(".mp3")]
+                    )
+                    selected_song = random.choices(
+                        music_files, weights=[99.99, 0.01], k=1
+                    )[0]
 
-                while not voice_client.is_connected():
-                    await asyncio.sleep(0.1)
+                    while not voice_client.is_connected():
+                        await asyncio.sleep(0.1)
 
-                voice_client.play(
-                    discord.FFmpegPCMAudio(os.path.join(music_folder, selected_song))
-                )
+                    voice_client.play(
+                        discord.FFmpegPCMAudio(
+                            os.path.join(music_folder, selected_song)
+                        )
+                    )
 
-                while voice_client.is_playing():
-                    await asyncio.sleep(0.1)
+                    while voice_client.is_playing():
+                        await asyncio.sleep(0.1)
 
-                await voice_client.disconnect()
+                    await voice_client.disconnect()
+                except Exception as e:
+                    print(f"Bingbong hourly task failed: {e}")
 
 
 @bingbong_play.before_loop
@@ -385,4 +390,3 @@ if __name__ == "__main__":
     else:
         print("Error: DISCORD_TOKEN not found in environment variables.")
         exit(1)
-
