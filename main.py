@@ -109,6 +109,7 @@ async def bingbong_play():
     for guild in bot.guilds:
         for channel in guild.voice_channels:
             if len(channel.members) > 0:
+                voice_client = None
                 try:
                     voice_client = await channel.connect()
                     music_folder = "sounds/bingbong"
@@ -130,13 +131,15 @@ async def bingbong_play():
 
                     while voice_client.is_playing():
                         await asyncio.sleep(0.1)
+
                 except Exception as e:
                     print(f"Bingbong hourly task failed: {e}")
-
-                try:
-                    await voice_client.disconnect()
-                except Exception as e:
-                    print(f"Bingbong hourly disconnect failed: {e}")
+                finally:
+                    if voice_client:
+                        try:
+                            await voice_client.disconnect()
+                        except Exception as e:
+                            print(f"Bingbong hourly disconnect failed: {e}")
 
 
 @bingbong_play.before_loop
