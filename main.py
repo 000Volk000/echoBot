@@ -211,13 +211,6 @@ async def bingbong_play():
         )
 
 
-@bingbong_play.error
-async def bingbong_play_error(error):
-    # This prevents the task from stopping on errors
-    print(f"[Bingbong] Task error handler: {type(error).__name__}: {error}")
-    # The task will continue running despite errors
-
-
 @bingbong_play.before_loop
 async def before_bingbong_play():
     await bot.wait_until_ready()
