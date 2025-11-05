@@ -9,7 +9,7 @@ on:
 env:
   DOCKER_BUILDKIT: 1
 
-  IMAGE_NAME: ghcr.io/000Volk000/echobot
+  IMAGE_NAME: ghcr.io/000volk000/echobot
 
 jobs:
   build-and-push:
@@ -43,6 +43,5 @@ jobs:
           tags: |
             ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:main
-            ${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.sha_short }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
