@@ -8,6 +8,7 @@ import json
 from datetime import datetime
 import random
 import asyncio
+import sys
 
 # Load environment variables
 load_dotenv()
