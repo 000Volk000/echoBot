@@ -23,7 +23,7 @@ fireChannelId = 1329155351370666056
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[logging.StreamHandler()],
+    stream=sys.stdout,
 )
 
 # File to store the last claim message ID
@@ -465,7 +465,7 @@ async def bingbong(ctx: commands.Context):
 # Run the bot
 if __name__ == "__main__":
     if token:
-        bot.run(token, log_level=logging.INFO)
+        bot.run(token)
     else:
         logging.critical("Error: DISCORD_TOKEN not found in environment variables.")
         exit(1)
