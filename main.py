@@ -19,6 +19,13 @@ mudaeEditId = 1408437424107028552
 mudaeChannelId = 1408380741334728704
 fireChannelId = 1329155351370666056
 
+# Set up basic logging to console
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[logging.StreamHandler()],
+)
+
 # File to store the last claim message ID
 CLAIM_MESSAGE_FILE = "last_claim_message.json"
 
@@ -39,11 +46,8 @@ def save_claim_message_id(message_id):
         with open(CLAIM_MESSAGE_FILE, "w") as f:
             json.dump({"message_id": message_id}, f)
     except Exception as e:
-        print(f"Error saving claim message ID: {e}")
+        logging.error(f"Error saving claim message ID: {e}")
 
-
-# Set up basic logging
-handler = logging.FileHandler(filename="discord.log", encoding="utf-8", mode="w")
 
 # Set up intents
 intents = discord.Intents.default()
@@ -95,8 +99,8 @@ async def before_mudae_claim_reset():
 
     total_seconds = hours_to_wait * 3600 + minutes_to_wait * 60 + seconds_to_wait
 
-    print(f"Next 3-hour mark: {next_3h_mark:02d}:05:00")
-    print(
+    logging.info(f"Next 3-hour mark: {next_3h_mark:02d}:05:00")
+    logging.info(
         f"Waiting {hours_to_wait}h {minutes_to_wait}m {seconds_to_wait}s before starting mudae claim reset task"
     )
 
@@ -134,7 +138,7 @@ async def bingbong_play():
                             connection_attempts += 1
 
                         if not voice_client.is_connected():
-                            print(
+                            logging.warning(
                                 f"[Bingbong] Failed to connect to {channel.name} in {guild.name}"
                             )
                             if voice_client:
@@ -163,23 +167,23 @@ async def bingbong_play():
                             playback_time += 1
 
                         if playback_time >= 100:
-                            print(
+                            logging.warning(
                                 f"[Bingbong] Playback timeout in {channel.name}, stopping"
                             )
                             if voice_client.is_playing():
                                 voice_client.stop()
 
                         await asyncio.sleep(0.5)
-                        print(
+                        logging.info(
                             f"[Bingbong] Successfully played in {channel.name} ({guild.name})"
                         )
 
                     except asyncio.TimeoutError:
-                        print(
+                        logging.warning(
                             f"[Bingbong] Connection timeout for {channel.name} in {guild.name}"
                         )
                     except Exception as e:
-                        print(
+                        logging.error(
                             f"[Bingbong] Error in {channel.name} ({guild.name}): {type(e).__name__}: {e}"
                         )
                     finally:
@@ -189,11 +193,11 @@ async def bingbong_play():
                                     voice_client.disconnect(force=True), timeout=5.0
                                 )
                             except asyncio.TimeoutError:
-                                print(
+                                logging.warning(
                                     f"[Bingbong] Disconnect timeout for {channel.name}"
                                 )
                             except Exception as e:
-                                print(
+                                logging.error(
                                     f"[Bingbong] Disconnect error: {type(e).__name__}: {e}"
                                 )
 
@@ -206,7 +210,7 @@ async def bingbong_play():
                         await asyncio.sleep(1.0)
 
     except Exception as e:
-        print(
+        logging.critical(
             f"[Bingbong] Critical error in bingbong_play task: {type(e).__name__}: {e}"
         )
 
@@ -219,7 +223,7 @@ async def before_bingbong_play():
     seconds_to_wait = 59 - now.second
     total_seconds = minutes_to_wait * 60 + seconds_to_wait
 
-    print(
+    logging.info(
         f"Waiting {minutes_to_wait}m {seconds_to_wait}s before starting bingbong play task"
     )
     await asyncio.sleep(total_seconds)
@@ -229,22 +233,22 @@ async def before_bingbong_play():
 ## Event when the bot is ready
 @bot.event
 async def on_ready():
-    print(f"Estamos ready para funcionar, {bot.user.name}")
+    logging.info(f"Estamos ready para funcionar, {bot.user.name}")
     try:
         synced = await bot.tree.sync()
-        print(f"Synced {len(synced)} command(s)")
+        logging.info(f"Synced {len(synced)} command(s)")
     except Exception as e:
-        print(f"Failed to sync commands: {e}")
+        logging.error(f"Failed to sync commands: {e}")
     now = datetime.now()
-    print(f"Current time: {now.strftime('%H:%M:%S')}\n")
+    logging.info(f"Current time: {now.strftime('%H:%M:%S')}\n")
 
     if not mudae_claim_reset.is_running():
         mudae_claim_reset.start()
-        print("Started mudae claim reset task")
+        logging.info("Started mudae claim reset task")
 
     if not bingbong_play.is_running():
         bingbong_play.start()
-        print("Started bingbong play task")
+        logging.info("Started bingbong play task")
 
 
 ## Event when a new member joins
@@ -296,7 +300,7 @@ async def on_message(message):
                     sticker = await bot.fetch_sticker(1408397918658105406)
                     await message.reply(stickers=[sticker])
             except Exception as e:
-                print(f"Error processing mathparse: {e}")
+                logging.warning(f"Error processing mathparse: {e}")
 
     if "Wished by" in message.content and ">, <" in message.content:
         await message.channel.send(
@@ -461,7 +465,7 @@ async def bingbong(ctx: commands.Context):
 # Run the bot
 if __name__ == "__main__":
     if token:
-        bot.run(token, log_handler=handler, log_level=logging.DEBUG)
+        bot.run(token, log_level=logging.INFO)
     else:
-        print("Error: DISCORD_TOKEN not found in environment variables.")
+        logging.critical("Error: DISCORD_TOKEN not found in environment variables.")
         exit(1)
