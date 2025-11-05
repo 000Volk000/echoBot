@@ -1,5 +1,7 @@
 FROM python:3.14 AS echobot
 
+RUN apt update && apt upgrade && apt install -y ffmpeg libopus-dev
+
 WORKDIR /app
 COPY . /app
 
