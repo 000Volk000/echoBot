@@ -123,7 +123,7 @@ async def bingbong_play():
                                     guild.voice_client.disconnect(force=True),
                                     timeout=3.0,
                                 )
-                            except:
+                            except Exception:
                                 pass
                             await asyncio.sleep(0.5)
 
@@ -145,7 +145,7 @@ async def bingbong_play():
                             if voice_client:
                                 try:
                                     await voice_client.disconnect(force=True)
-                                except:
+                                except Exception:
                                     pass
                             continue
 
@@ -205,7 +205,7 @@ async def bingbong_play():
                         if guild.voice_client is not None:
                             try:
                                 await guild.voice_client.disconnect(force=True)
-                            except:
+                            except Exception:
                                 pass
 
                         await asyncio.sleep(1.0)
@@ -300,16 +300,16 @@ async def on_message(message):
                 if mathparse.parse(message.content) == 33:
                     sticker = await bot.fetch_sticker(1408397918658105406)
                     await message.reply(stickers=[sticker])
-            except Exception as e:
-                logging.warning(f"Error processing mathparse: {e}")
+            except Exception:
+                pass
 
     if "Wished by" in message.content and ">, <" in message.content:
         await message.channel.send(
-            f":star: Wish de varias personas contanto hasta 10 :alarm_clock: para que lo pueda pillar un tercero :star:\n"
+            ":star: Wish de varias personas contanto hasta 10 :alarm_clock: para que lo pueda pillar un tercero :star:\n"
         )
         await asyncio.sleep(10)
         await message.channel.send(
-            f":japanese_goblin: 10 segs cumplidos puede pillarlo un tercero :japanese_goblin:"
+            ":japanese_goblin: 10 segs cumplidos puede pillarlo un tercero :japanese_goblin:"
         )
 
     await bot.process_commands(message)
