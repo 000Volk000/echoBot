@@ -446,9 +446,11 @@ async def bingbong(ctx: commands.Context):
             [f for f in os.listdir(music_folder) if f.endswith(".mp3")]
         )
         selected_song = random.choices(music_files, weights=[99.99, 0.01], k=1)[0]
+        logging.info(f"Cancion elegida, {selected_song}")
 
         while not voice_client.is_connected():
             await asyncio.sleep(0.1)
+        logging.info("Espera finalizada")
 
         voice_client.play(
             discord.FFmpegPCMAudio(os.path.join(music_folder, selected_song))
