@@ -108,128 +108,6 @@ async def before_mudae_claim_reset():
     await asyncio.sleep(total_seconds)
 
 
-# Scheduled task for bingbong playing every hour
-@tasks.loop(hours=1)
-async def bingbong_play():
-    try:
-        for guild in bot.guilds:
-            for channel in guild.voice_channels:
-                if len(channel.members) > 0:
-                    voice_client = None
-                    try:
-                        if guild.voice_client is not None:
-                            try:
-                                await asyncio.wait_for(
-                                    guild.voice_client.disconnect(force=True),
-                                    timeout=3.0,
-                                )
-                            except Exception:
-                                pass
-                            await asyncio.sleep(0.5)
-
-                        voice_client = await asyncio.wait_for(
-                            channel.connect(timeout=10.0, reconnect=False), timeout=15.0
-                        )
-
-                        connection_attempts = 0
-                        while (
-                            not voice_client.is_connected() and connection_attempts < 30
-                        ):
-                            await asyncio.sleep(0.1)
-                            connection_attempts += 1
-
-                        if not voice_client.is_connected():
-                            logging.warning(
-                                f"[Bingbong] Failed to connect to {channel.name} in {guild.name}"
-                            )
-                            if voice_client:
-                                try:
-                                    await voice_client.disconnect(force=True)
-                                except Exception:
-                                    pass
-                            continue
-
-                        music_folder = "sounds/bingbong"
-                        music_files = sorted(
-                            [f for f in os.listdir(music_folder) if f.endswith(".mp3")]
-                        )
-                        selected_song = random.choices(
-                            music_files, weights=[99.99, 0.01], k=1
-                        )[0]
-
-                        audio_source = discord.FFmpegPCMAudio(
-                            os.path.join(music_folder, selected_song)
-                        )
-                        voice_client.play(audio_source)
-
-                        playback_time = 0
-                        while voice_client.is_playing() and playback_time < 100:
-                            await asyncio.sleep(0.1)
-                            playback_time += 1
-
-                        if playback_time >= 100:
-                            logging.warning(
-                                f"[Bingbong] Playback timeout in {channel.name}, stopping"
-                            )
-                            if voice_client.is_playing():
-                                voice_client.stop()
-
-                        await asyncio.sleep(0.5)
-                        logging.info(
-                            f"[Bingbong] Successfully played in {channel.name} ({guild.name})"
-                        )
-
-                    except asyncio.TimeoutError:
-                        logging.warning(
-                            f"[Bingbong] Connection timeout for {channel.name} in {guild.name}"
-                        )
-                    except Exception as e:
-                        logging.error(
-                            f"[Bingbong] Error in {channel.name} ({guild.name}): {type(e).__name__}: {e}"
-                        )
-                    finally:
-                        if voice_client:
-                            try:
-                                await asyncio.wait_for(
-                                    voice_client.disconnect(force=True), timeout=5.0
-                                )
-                            except asyncio.TimeoutError:
-                                logging.warning(
-                                    f"[Bingbong] Disconnect timeout for {channel.name}"
-                                )
-                            except Exception as e:
-                                logging.error(
-                                    f"[Bingbong] Disconnect error: {type(e).__name__}: {e}"
-                                )
-
-                        if guild.voice_client is not None:
-                            try:
-                                await guild.voice_client.disconnect(force=True)
-                            except Exception:
-                                pass
-
-                        await asyncio.sleep(1.0)
-
-    except Exception as e:
-        logging.critical(
-            f"[Bingbong] Critical error in bingbong_play task: {type(e).__name__}: {e}"
-        )
-
-
-@bingbong_play.before_loop
-async def before_bingbong_play():
-    await bot.wait_until_ready()
-    now = datetime.now()
-    minutes_to_wait = 59 - now.minute
-    seconds_to_wait = 59 - now.second
-    total_seconds = minutes_to_wait * 60 + seconds_to_wait
-
-    logging.info(
-        f"Waiting {minutes_to_wait}m {seconds_to_wait}s before starting bingbong play task"
-    )
-    await asyncio.sleep(total_seconds)
-
-
 # Handling events
 ## Event when the bot is ready
 @bot.event
@@ -246,10 +124,6 @@ async def on_ready():
     if not mudae_claim_reset.is_running():
         mudae_claim_reset.start()
         logging.info("Started mudae claim reset task")
-
-    if not bingbong_play.is_running():
-        bingbong_play.start()
-        logging.info("Started bingbong play task")
 
 
 ## Event when a new member joins
