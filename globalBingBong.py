@@ -60,10 +60,13 @@ async def globalBingBong():
 @bot.event
 async def on_ready():
     logging.info("Starting global BingBong task:")
+
     if await globalBingBong():
         logging.info("Finished successfully global BingBong Task")
     else:
         logging.info("Finished successfully global BingBong Task")
+
+    await bot.close()
 
 
 # Run the bot
