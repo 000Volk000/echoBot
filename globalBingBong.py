@@ -75,4 +75,4 @@ if __name__ == "__main__":
         bot.run(token)
     else:
         logging.critical("Error: DISCORD_TOKEN not found in environment variables.")
-exit(1)
+        exit(1)
