@@ -14,11 +14,14 @@ import sys
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
 jaimeId = int(os.getenv("JAIME_USER_ID"))
-mudaeRol = "MudaeSubscribed"
-mudaeSubId = 1408437418289528934
-mudaeEditId = 1408437424107028552
-mudaeChannelId = 1408380741334728704
-fireChannelId = 1329155351370666056
+mudaeRol = os.getenv("MUDAE_ROL")
+mudaeSubId = int(os.getenv("MUDAE_SUBSCRIBE_MESSAGE_ID"))
+mudaeEditId = int(os.getenv("MUDAE_EDIT_MESSAGE_ID"))
+mudaeChannelId = int(os.getenv("MUDAE_CHANNEL_ID"))
+fireChannelId = int(os.getenv("FIRE_CHANNEL_ID"))
+jaimeReactionEmoji = os.getenv("JAIME_REACTION_EMOJI")
+intermediosEmoji = os.getenv("INTERMEDIOS_EMOJI")
+alonsoStickerId = int(os.getenv("ALONSO_STICKER_ID"))
 
 # Set up basic logging to console
 logging.basicConfig(
@@ -69,8 +72,10 @@ async def mudae_claim_reset():
         last_message = await channel.fetch_message(last_message_id)
         await last_message.delete()
 
+    guild = channel.guild
+    mudaeRolId = discord.utils.get(guild.roles, name=mudaeRol)
     message = await channel.send(
-        "<@&1408382042739183648> el claim del mudae ha sido reiniciado"
+        f"<@&{mudaeRolId}> el claim del mudae ha sido reiniciado"
     )
     save_claim_message_id(message.id)
 
@@ -156,10 +161,10 @@ async def on_message(message):
             or f"<@!{jaimeId}>" in message.content
             or message.author.id == jaimeId
         ):
-            await message.reply("<:uh:1391363166910283799>")
+            await message.reply(jaimeReactionEmoji)
 
         if "eran intermedios" in message.content.lower():
-            await message.add_reaction("<:eran_intermedios:1408413491555078305>")
+            await message.add_reaction(intermediosEmoji)
 
         if (
             "fernando" in message.content.lower()
@@ -167,12 +172,12 @@ async def on_message(message):
             or "33" in message.content.lower()
             or "adrian newey" in message.content.lower()
         ):
-            sticker = await bot.fetch_sticker(1408397918658105406)
+            sticker = await bot.fetch_sticker(alonsoStickerId)
             await message.reply(stickers=[sticker])
         else:
             try:
                 if mathparse.parse(message.content) == 33:
-                    sticker = await bot.fetch_sticker(1408397918658105406)
+                    sticker = await bot.fetch_sticker(alonsoStickerId)
                     await message.reply(stickers=[sticker])
             except Exception:
                 pass
