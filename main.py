@@ -75,7 +75,7 @@ async def mudae_claim_reset():
     guild = channel.guild
     mudaeRolId = discord.utils.get(guild.roles, name=mudaeRol)
     message = await channel.send(
-        f"<@&{mudaeRolId}> el claim del mudae ha sido reiniciado"
+        f"<@&{mudaeRolId.id}> el claim del mudae ha sido reiniciado"
     )
     save_claim_message_id(message.id)
 
