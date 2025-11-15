@@ -182,15 +182,6 @@ async def on_message(message):
             except Exception:
                 pass
 
-    if "Wished by" in message.content and ">, <" in message.content:
-        await message.channel.send(
-            ":star: Wish de varias personas contanto hasta 10 :alarm_clock: para que lo pueda pillar un tercero :star:\n"
-        )
-        await asyncio.sleep(10)
-        await message.channel.send(
-            ":japanese_goblin: 10 segs cumplidos puede pillarlo un tercero :japanese_goblin:"
-        )
-
     await bot.process_commands(message)
 
 
