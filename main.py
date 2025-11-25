@@ -322,7 +322,7 @@ async def historia(ctx: commands.Context, *, text: str = None):
                 messageEmbed = splitted[0] + "\n\n_Votacion:_\n"
                 for m in range(1, len(splitted), 2):
                     messageEmbed += (
-                        splitted[m].strip() + " -> " + splitted[m + 1] + "\n"
+                        splitted[m].strip() + " -> " + splitted[m + 1].strip() + "\n"
                     )
 
                 embed = discord.Embed(
