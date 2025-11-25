@@ -14,6 +14,7 @@ import sys
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
 jaimeId = int(os.getenv("JAIME_USER_ID"))
+marcosId = int(os.getenv("MARCOS_USER_ID"))
 mudaeRol = os.getenv("MUDAE_ROL")
 mudaeSubId = int(os.getenv("MUDAE_SUBSCRIBE_MESSAGE_ID"))
 mudaeEditId = int(os.getenv("MUDAE_EDIT_MESSAGE_ID"))
@@ -303,6 +304,24 @@ async def encuesta(ctx: commands.Context, *, pregunta: str = None):
         await message.add_reaction("👎")
     else:
         await ctx.send("Por favor, proporciona una pregunta para la encuesta 😡")
+
+
+## Command to tell a story (DM only)
+@bot.hybrid_command(name="historia", description="📜 Creas una historia interactiva")
+@commands.dm_only()
+async def historia(ctx: commands.Context):
+    if ctx.author.id == marcosId:
+        await ctx.send("Érase una vez en un chat privado...")
+    else:
+        await ctx.send("Solo puede usar esto Marcos >:(")
+
+
+@historia.error
+async def historia_error(ctx: commands.Context, error):
+    if isinstance(error, commands.PrivateMessageOnly):
+        await ctx.send(
+            "Este comando solo funciona en mensajes privados (DM).", ephemeral=True
+        )
 
 
 ## Command to join the voice chat, play one of the .mp3 randomly and disconnect
