@@ -45,7 +45,3 @@ jobs:
             ${{ env.IMAGE_NAME }}:main
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
-
-      - name: Trigger Dokploy Deployment
-        if: success()
-        run: curl -X POST ${{ secrets.DOKPLOY_WEBHOOK_URL }}

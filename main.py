@@ -24,6 +24,10 @@ fireChannelId = int(os.getenv("FIRE_CHANNEL_ID"))
 jaimeReactionEmoji = os.getenv("JAIME_REACTION_EMOJI")
 intermediosEmoji = os.getenv("INTERMEDIOS_EMOJI")
 alonsoStickerId = int(os.getenv("ALONSO_STICKER_ID"))
+storySubscribeId = int(os.getenv("STORY_SUBSCRIBE_MESSAGE_ID"))
+storyEditId = int(os.getenv("STORY_EDIT_MESSAGE_ID"))
+_story_rol_raw = os.getenv("STORY_ROL_ID", "")
+storyRolId = int(_story_rol_raw.replace("<@&", "").replace(">", ""))
 
 # Set up basic logging to console
 logging.basicConfig(
@@ -211,6 +215,22 @@ async def on_raw_reaction_add(payload):
             if rol:
                 await user.remove_roles(rol)
 
+    if payload.message_id == storySubscribeId:
+        guild = bot.get_guild(payload.guild_id)
+        user = guild.get_member(payload.user_id)
+
+        if user is user.bot:
+            return
+
+        emoji_str = str(payload.emoji)
+        rol = guild.get_role(storyRolId)
+
+        if rol:
+            if emoji_str == "✔️":
+                await user.add_roles(rol)
+            elif emoji_str == "❌":
+                await user.remove_roles(rol)
+
 
 ## Event for handling mudaeRol added or removed
 @bot.event
@@ -232,6 +252,27 @@ async def on_member_update(before, after):
             await message.edit(
                 content=f"> Actualmente hay **{len([member for member in after.guild.members if discord.utils.get(member.roles, name=mudaeRol)])}** usuarios con el rol."
             )
+
+        story_rol_before = discord.utils.get(before.roles, id=storyRolId)
+        story_rol_after = discord.utils.get(after.roles, id=storyRolId)
+
+        if story_rol_before != story_rol_after:
+            channel = bot.get_channel(storyChannelId)
+            if channel and storyEditId:
+                try:
+                    message = await channel.fetch_message(storyEditId)
+                    count = len(
+                        [
+                            member
+                            for member in after.guild.members
+                            if discord.utils.get(member.roles, id=storyRolId)
+                        ]
+                    )
+                    await message.edit(
+                        content=f"> Actualmente hay **{count}** guías de Glob"
+                    )
+                except Exception as e:
+                    logging.error(f"Error updating story message: {e}")
 
 
 # Handling command
@@ -308,7 +349,7 @@ async def encuesta(ctx: commands.Context, *, pregunta: str = None):
         await ctx.send("Por favor, proporciona una pregunta para la encuesta 😡")
 
 
-## Command to tell a story (DM only)
+## Command for Marcos to make a story with votation
 @bot.hybrid_command(name="historia", description="📜 Creas una historia interactiva")
 @commands.dm_only()
 async def historia(ctx: commands.Context, *, text: str = None):
@@ -318,7 +359,7 @@ async def historia(ctx: commands.Context, *, text: str = None):
             if len(splitted) % 2 == 0 and len(splitted) > 3:
                 await ctx.send("Marcos tenias 1 tarea .-.")
                 await ctx.send(
-                    "El formato de la historia debe ser: !historia 'historia' </> ':emoji:' </> 'opcion' </> ':emoji2: </> 'opcion2' ...."
+                    "El formato de la historia debe ser: !historia 'historia' </> ':emoji:' </> 'opcion' </> ':emoji2' </> 'opcion2' ...."
                 )
             else:
                 messageEmbed = splitted[0] + "\n\n_Votacion:_\n"
@@ -335,7 +376,7 @@ async def historia(ctx: commands.Context, *, text: str = None):
 
                 channel = bot.get_channel(storyChannelId)
                 if channel:
-                    message = await channel.send(embed=embed)
+                    message = await channel.send(content=_story_rol_raw, embed=embed)
                     await ctx.send("Enviado facherisimo")
                 else:
                     await ctx.send("bro i cant idk why")
@@ -346,7 +387,7 @@ async def historia(ctx: commands.Context, *, text: str = None):
 
         else:
             await ctx.send(
-                "El formato de la historia debe ser: !historia 'historia' </> ':emoji:' </> 'opcion' </> ':emoji2: </> 'opcion2' ...."
+                "El formato de la historia debe ser: !historia 'historia' </> ':emoji:' </> 'opcion' </> ':emoji2' </> 'opcion2' ...."
             )
     else:
         await ctx.send("Solo puede usar esto Marcos >:(")
