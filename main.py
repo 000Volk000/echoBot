@@ -313,13 +313,17 @@ async def historia(ctx: commands.Context, *, text: str = None):
     if ctx.author.id == marcosId:
         if text is not None:
             splitted = text.split("</>")
-            if len(splitted) % 2 == 0:
+            if len(splitted) % 2 == 0 and len(splitted) > 3:
                 await ctx.send("Marcos tenias 1 tarea .-.")
                 await ctx.send(
-                    "El formato de la historia debe ser: 'historia' </> ':emoji:' </> 'opcion' </> ':emoji2: </> 'opcion2' ...."
+                    "El formato de la historia debe ser: !historia 'historia' </> ':emoji:' </> 'opcion' </> ':emoji2: </> 'opcion2' ...."
                 )
             else:
-                messageEmbed = ""
+                messageEmbed = splitted[0] + "\n\n_Votacion:_\n"
+                for m in range(1, len(splitted), 2):
+                    messageEmbed += (
+                        splitted[m].strip() + " -> " + splitted[m + 1] + "\n"
+                    )
 
                 embed = discord.Embed(
                     title="Historia",
@@ -333,7 +337,7 @@ async def historia(ctx: commands.Context, *, text: str = None):
 
         else:
             await ctx.send(
-                "El formato de la historia debe ser: 'historia' </> ':emoji:' </> 'opcion' </> ':emoji2: </> 'opcion2' ...."
+                "El formato de la historia debe ser: !historia 'historia' </> ':emoji:' </> 'opcion' </> ':emoji2: </> 'opcion2' ...."
             )
     else:
         await ctx.send("Solo puede usar esto Marcos >:(")
