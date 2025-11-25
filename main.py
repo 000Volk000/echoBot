@@ -309,9 +309,32 @@ async def encuesta(ctx: commands.Context, *, pregunta: str = None):
 ## Command to tell a story (DM only)
 @bot.hybrid_command(name="historia", description="📜 Creas una historia interactiva")
 @commands.dm_only()
-async def historia(ctx: commands.Context):
+async def historia(ctx: commands.Context, *, text: str = None):
     if ctx.author.id == marcosId:
-        await ctx.send("Érase una vez en un chat privado...")
+        if text is not None:
+            splitted = text.split("</>")
+            if len(splitted) % 2 == 0:
+                await ctx.send("Marcos tenias 1 tarea .-.")
+                await ctx.send(
+                    "El formato de la historia debe ser: 'historia' </> ':emoji:' </> 'opcion' </> ':emoji2: </> 'opcion2' ...."
+                )
+            else:
+                messageEmbed = ""
+
+                embed = discord.Embed(
+                    title="Historia",
+                    description=messageEmbed,
+                    color=discord.Color.orange(),
+                )
+
+                message = await ctx.send(embed=embed)
+                for e in range(1, len(splitted), 2):
+                    await message.add_reaction(splitted[e].strip())
+
+        else:
+            await ctx.send(
+                "El formato de la historia debe ser: 'historia' </> ':emoji:' </> 'opcion' </> ':emoji2: </> 'opcion2' ...."
+            )
     else:
         await ctx.send("Solo puede usar esto Marcos >:(")
 
@@ -320,7 +343,7 @@ async def historia(ctx: commands.Context):
 async def historia_error(ctx: commands.Context, error):
     if isinstance(error, commands.PrivateMessageOnly):
         await ctx.send(
-            "Este comando solo funciona en mensajes privados (DM).", ephemeral=True
+            "Hermano, esto solo funciona en mensajes privados (DM)", ephemeral=True
         )
 
 
