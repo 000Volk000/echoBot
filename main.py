@@ -15,6 +15,7 @@ load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
 jaimeId = int(os.getenv("JAIME_USER_ID"))
 marcosId = int(os.getenv("MARCOS_USER_ID"))
+storyChannelId = int(os.getenv("STORY_CHANNEL_ID"))
 mudaeRol = os.getenv("MUDAE_ROL")
 mudaeSubId = int(os.getenv("MUDAE_SUBSCRIBE_MESSAGE_ID"))
 mudaeEditId = int(os.getenv("MUDAE_EDIT_MESSAGE_ID"))
@@ -150,10 +151,11 @@ async def on_message(message):
         return
 
     if "hola" in message.content.lower():
-        await message.delete()
-        await message.channel.send(
-            f"¿De que vas {message.author.mention}?, aquí el unico que saluda soy yo.\n\nSi quieres saludar a alguien, usa el comando `/saluda`"
-        )
+        if message.guild:
+            await message.delete()
+            await message.channel.send(
+                f"¿De que vas {message.author.mention}?, aquí el unico que saluda soy yo.\n\nSi quieres saludar a alguien, usa el comando `/saluda`"
+            )
 
     else:
         if (
@@ -326,12 +328,19 @@ async def historia(ctx: commands.Context, *, text: str = None):
                     )
 
                 embed = discord.Embed(
-                    title="Historia",
+                    title="Glob",
                     description=messageEmbed,
                     color=discord.Color.orange(),
                 )
 
-                message = await ctx.send(embed=embed)
+                channel = bot.get_channel(storyChannelId)
+                if channel:
+                    message = await channel.send(embed=embed)
+                    await ctx.send("Enviado facherisimo")
+                else:
+                    await ctx.send("bro i cant idk why")
+                    return
+
                 for e in range(1, len(splitted), 2):
                     await message.add_reaction(splitted[e].strip())
 
