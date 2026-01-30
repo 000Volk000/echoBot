@@ -8,7 +8,7 @@ on:
 
 env:
   DOCKER_BUILDKIT: 1
-  IMAGE_NAME: ghcr.io/000volk000/echobot
+  IMAGE_NAME: ghcr.io/000Volk000/echobot
 
 jobs:
   build-and-push:
