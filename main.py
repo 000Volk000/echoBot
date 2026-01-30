@@ -29,6 +29,9 @@ storyEditId = int(os.getenv("STORY_EDIT_MESSAGE_ID"))
 _story_rol_raw = os.getenv("STORY_ROL_ID", "")
 storyRolId = int(_story_rol_raw.replace("<@&", "").replace(">", ""))
 
+TARGET_USER_ID = 642787985846435884
+user_message_count = 0
+
 # Set up basic logging to console
 logging.basicConfig(
     level=logging.INFO,
@@ -148,11 +151,27 @@ async def on_member_join(member):
 ## Event when a message is sent
 @bot.event
 async def on_message(message):
+    # Declaramos la variable global para poder modificarla
+    global user_message_count
+
     if message.channel == bot.get_channel(fireChannelId):
         await message.add_reaction("🔥")
 
     if message.author == bot.user:
         return
+
+    if message.author.id == TARGET_USER_ID:
+        user_message_count += 1
+        
+        if user_message_count >= 20:
+            try:
+                await message.delete()
+                await message.channel.send("Un momentillo, un momentillo, un momentillo")
+                user_message_count = 0 # Reiniciamos cuenta
+            except discord.Forbidden:
+                logging.error("No tengo permisos para borrar mensajes")
+            except Exception as e:
+                logging.error(f"Error: {e}")
 
     if "hola" in message.content.lower():
         if message.guild:
