@@ -8,8 +8,8 @@ on:
 
 env:
   DOCKER_BUILDKIT: 1
-  IMAGE_NAME: ghcr.io/000Volk000/echobot
-  CHARTS_REPOSITORY: 000Volk000/charts
+  IMAGE_NAME: ghcr.io/000volk000/echobot
+  CHARTS_REPOSITORY: 000volk000/charts
   CHARTS_DIRECTORY: echobot
 
 jobs:
