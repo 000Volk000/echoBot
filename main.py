@@ -161,7 +161,7 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    if message.author.id == caneteId and any(msg in message.content for msg in tiradas):
+    if message.author.id == caneteId and any(msg in message.content.lower() for msg in tiradas):
         await message.channel.send("Cañete tira con / puto perro de mierda 😠")
 
     if message.author.id == pabloId:
