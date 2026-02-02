@@ -32,7 +32,7 @@ _story_rol_raw = os.getenv("STORY_ROL_ID", "")
 storyRolId = int(_story_rol_raw.replace("<@&", "").replace(">", ""))
 
 pablo_message_count = 0
-tiradas =["$m","$ma","$mg","$h","$hg","$ha"]
+tiradas = ["$m", "$ma", "$mg", "$h", "$hg", "$ha"]
 
 # Set up basic logging to console
 logging.basicConfig(
@@ -161,8 +161,10 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    if message.author.id == caneteId and any(msg in message.content.lower() for msg in tiradas):
-        await message.channel.send("Cañete tira con / puto perro de mierda 😠")
+    if message.author.id == caneteId and any(
+        msg in message.content.lower() for msg in tiradas
+    ):
+        await message.reply("Cañete tira con / puto perro de mierda 😠")
 
     if message.author.id == pabloId:
         pablo_message_count += 1
