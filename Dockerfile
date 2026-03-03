@@ -1,15 +1,10 @@
-FROM python:3.11-slim AS echobot
+FROM python:latest AS echobot
 
-RUN apt-get update && apt-get install -y \
-    ffmpeg \
-    libopus-dev \
-    libsodium-dev \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt update && apt install -y ffmpeg libopus-dev
 
 WORKDIR /app
 COPY . /app
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 CMD ["python", "main.py"]
