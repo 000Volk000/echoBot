@@ -9,6 +9,7 @@ from datetime import datetime
 import random
 import asyncio
 import sys
+import aiohttp
 
 # Load environment variables
 load_dotenv()
@@ -30,6 +31,7 @@ storySubscribeId = int(os.getenv("STORY_SUBSCRIBE_MESSAGE_ID"))
 storyEditId = int(os.getenv("STORY_EDIT_MESSAGE_ID"))
 _story_rol_raw = os.getenv("STORY_ROL_ID", "")
 storyRolId = int(_story_rol_raw.replace("<@&", "").replace(">", ""))
+n8nWebhook = os.getenv("N8N_WEBHOOK")
 
 pablo_message_count = 0
 tiradas = ["$m", "$ma", "$mg", "$h", "$hg", "$ha"]
@@ -181,6 +183,23 @@ async def on_message(message):
             )
 
     else:
+        if message.content.lower().startswith("echobot"):
+            payload = {
+                "author": str(message.author),
+                "content": message.content,
+                "id_mensaje": message.id,
+            }
+
+            async with aiohttp.ClientSession() as session:
+                try:
+                    async with session.post(n8nWebhook, json=payload) as response:
+                        if response.status != 200:
+                            logging.error(
+                                f"Error sending to n8n. HTTP status: {response.status}"
+                            )
+                except Exception as e:
+                    logging.error(f"Network error to n8n: {e}")
+
         if (
             "jaime" in message.content.lower()
             or f"<@{jaimeId}>" in message.content
