@@ -187,7 +187,9 @@ async def on_message(message):
             payload = {
                 "author": str(message.author),
                 "content": message.content,
-                "id_mensaje": message.id,
+                "message_id": message.id,
+                "channel_id": message.channel.id,
+                "server_id": message.guild.id,
             }
 
             async with aiohttp.ClientSession() as session:
