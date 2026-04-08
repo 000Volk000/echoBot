@@ -14,7 +14,7 @@ import aiohttp
 # Load environment variables
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
-jaimeId = int(os.getenv("JAIME_USER_ID"))
+jasminId = int(os.getenv("jasmin_USER_ID"))
 pabloId = int(os.getenv("PABLO_USER_ID"))
 marcosId = int(os.getenv("MARCOS_USER_ID"))
 caneteId = int(os.getenv("CANETE_USER_ID"))
@@ -24,7 +24,7 @@ mudaeSubId = int(os.getenv("MUDAE_SUBSCRIBE_MESSAGE_ID"))
 mudaeEditId = int(os.getenv("MUDAE_EDIT_MESSAGE_ID"))
 mudaeChannelId = int(os.getenv("MUDAE_CHANNEL_ID"))
 fireChannelId = int(os.getenv("FIRE_CHANNEL_ID"))
-jaimeReactionEmoji = os.getenv("JAIME_REACTION_EMOJI")
+jasminReactionEmoji = os.getenv("jasmin_REACTION_EMOJI")
 intermediosEmoji = os.getenv("INTERMEDIOS_EMOJI")
 alonsoStickerId = int(os.getenv("ALONSO_STICKER_ID"))
 storySubscribeId = int(os.getenv("STORY_SUBSCRIBE_MESSAGE_ID"))
@@ -203,12 +203,12 @@ async def on_message(message):
                     logging.error(f"Network error to n8n: {e}")
 
         if (
-            "jaime" in message.content.lower()
-            or f"<@{jaimeId}>" in message.content
-            or f"<@!{jaimeId}>" in message.content
-            or message.author.id == jaimeId
+            "jasmin" in message.content.lower()
+            or f"<@{jasminId}>" in message.content
+            or f"<@!{jasminId}>" in message.content
+            or message.author.id == jasminId
         ):
-            await message.reply(jaimeReactionEmoji)
+            await message.reply(jasminReactionEmoji)
 
         if "eran intermedios" in message.content.lower():
             await message.add_reaction(intermediosEmoji)
