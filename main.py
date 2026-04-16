@@ -163,14 +163,9 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    if message.author.id == caneteId and any(
-        msg in message.content.lower() for msg in tiradas
-    ):
-        await message.reply("Cañete tira con / puto perro de mierda 😠")
-
     if message.author.id == pabloId:
         pablo_message_count += 1
-        if pablo_message_count >= 20:
+        if pablo_message_count >= 5:
             await message.delete()
             await message.channel.send("Un momentillo, un momentillo, un momentillo ☝️")
             pablo_message_count = 0
