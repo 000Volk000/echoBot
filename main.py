@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands, tasks
 import logging
+from discord.ui import view
 from dotenv import load_dotenv
 import os
 from mathparse import mathparse
@@ -496,6 +497,36 @@ async def pixelateImage(url, max_size):
     return buffer
 
 
+## Response form
+class ResponseForm(discord.ui.Modal, title="Adivina el campeón"):
+    response = discord.ui.TextInput(
+        label="Nombre del campeón",
+        style=discord.TextStyle.short,
+        placeholder="Escribe aquí...",
+        required=True,
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        intento = self.response.value.strip().lower()
+        await interaction.channel.send(
+            f"{interaction.user.name} cree que el campeón es: {intento}"
+        )
+
+
+## Game View
+class GameView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(
+        label="Adivina el campeón aquí", style=discord.ButtonStyle.primary
+    )
+    async def boton_adivinar(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.send_modal(ResponseForm())
+
+
 @bot.command()
 async def pruebaSecreta(ctx):
     url = "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Aurora_0.jpg"
@@ -506,7 +537,8 @@ async def pruebaSecreta(ctx):
         return
 
     img = discord.File(fp=buffer, filename="pixel.png")
-    await ctx.send(file=img)
+    gameView = GameView()
+    await ctx.send(content="# Jueguito de Adivinanza", file=img, view=gameView)
 
 
 # Run the bot
