@@ -13,6 +13,7 @@ import sys
 import aiohttp
 import io
 from PIL import Image
+import re
 
 # Load environment variables
 load_dotenv()
@@ -473,6 +474,11 @@ async def bingbong(ctx: commands.Context):
 
 
 # Daily Game
+## Normalize
+def normalize(name: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", name.lower())
+
+
 ## Pixelate Image
 async def pixelateImage(url, max_size):
     async with aiohttp.ClientSession() as session:
@@ -506,38 +512,75 @@ class ResponseForm(discord.ui.Modal, title="Adivina el campeón"):
         required=True,
     )
 
+    def __init__(self, champ: str):
+        super().__init__()
+        self.correctChamp = normalize(champ)
+
     async def on_submit(self, interaction: discord.Interaction):
-        intento = self.response.value.strip().lower()
-        await interaction.channel.send(
-            f"{interaction.user.name} cree que el campeón es: {intento}"
-        )
+        intento = normalize(self.response.value)
+        if intento == self.correctChamp:
+            resultado = f"VAMONOOOOOO, {interaction.user.mention} lo adivinó"
+        else:
+            resultado = f"Mu Malo, {interaction.user.mention} no le sabe"
+
+        await interaction.response.send_message(resultado)
 
 
 ## Game View
 class GameView(discord.ui.View):
-    def __init__(self):
+    def __init__(self, champ):
         super().__init__(timeout=None)
+        self.champ = champ
 
     @discord.ui.button(
-        label="Adivina el campeón aquí", style=discord.ButtonStyle.primary
+        label="-------------- Adivina el campeón --------------",
+        style=discord.ButtonStyle.primary,
     )
     async def boton_adivinar(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        await interaction.response.send_modal(ResponseForm())
+        await interaction.response.send_modal(ResponseForm(self.champ))
+
+
+## Random Champ
+async def randomChamp():
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            "https://ddragon.leagueoflegends.com/api/versions.json"
+        ) as resp:
+            versions = await resp.json()
+            version = versions[0]
+
+        url = f"https://ddragon.leagueoflegends.com/cdn/{version}/data/es_ES/champion.json"
+        async with session.get(url) as resp:
+            champs = await resp.json()
+            champions = list(champs["data"].keys())
+
+        champ = random.choice(champions)
+
+        url = f"https://ddragon.leagueoflegends.com/cdn/{version}/data/es_ES/champion/{champ}.json"
+        async with session.get(url) as resp:
+            data = await resp.json()
+            skins = data["data"][champ]["skins"]
+
+        skin = random.choice(skins)["num"]
+
+        champUrl = f"https://ddragon.leagueoflegends.com/cdn/img/champion/splash/{champ}_{skin}.jpg"
+
+        return champUrl, champ
 
 
 @bot.command()
 async def pruebaSecreta(ctx):
-    url = "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Aurora_0.jpg"
-    buffer = await pixelateImage(url, 32)
+    url, champ = await randomChamp()
+    buffer = await pixelateImage(url, 64)
 
     if not buffer:
-        await ctx.send("Fallo")
+        await ctx.send("Algo ha salido mal")
         return
 
     img = discord.File(fp=buffer, filename="pixel.png")
-    gameView = GameView()
+    gameView = GameView(champ)
     await ctx.send(content="# Jueguito de Adivinanza", file=img, view=gameView)
 
 
