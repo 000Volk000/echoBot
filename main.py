@@ -473,7 +473,7 @@ async def bingbong(ctx: commands.Context):
 
 # Daily Game
 ## Pixelate Image
-async def pixelateImage(url):
+async def pixelateImage(url, max_size):
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as resp:
             if resp.status != 200:
@@ -481,13 +481,32 @@ async def pixelateImage(url):
             datos = await resp.read()
 
     image = Image.open(io.BytesIO(datos))
-    smallImg = image.resize((32, 32), resample=Image.Resampling.BILINEAR)
+
+    width, height = image.size
+    ratio = max_size / max(width, height)
+    width = int(width * ratio)
+    height = int(height * ratio)
+
+    smallImg = image.resize((width, height), resample=Image.Resampling.BILINEAR)
     image = smallImg.resize(image.size, Image.Resampling.NEAREST)
 
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")
     buffer.seek(0)
     return buffer
+
+
+@bot.command()
+async def pruebaSecreta(ctx):
+    url = "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Aurora_0.jpg"
+    buffer = await pixelateImage(url, 32)
+
+    if not buffer:
+        await ctx.send("Fallo")
+        return
+
+    img = discord.File(fp=buffer, filename="pixel.png")
+    await ctx.send(file=img)
 
 
 # Run the bot
