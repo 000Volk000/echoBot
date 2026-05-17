@@ -480,35 +480,33 @@ def normalize(name: str) -> str:
 
 
 ## Pixelate Image
-async def pixelateImage(url, max_size):
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as resp:
-            if resp.status != 200:
-                return None
-            datos = await resp.read()
+def pixelateImage(datos: bytes, maxSize: int) -> io.BytesIO | None:
+    logging.info("Starting image pixelation")
+    try:
+        image = Image.open(io.BytesIO(datos))
+        width, height = image.size
+        ratio = maxSize / max(width, height)
+        width, height = int(width * ratio), int(height * ratio)
 
-    image = Image.open(io.BytesIO(datos))
+        smallImg = image.resize((width, height), resample=Image.Resampling.BILINEAR)
+        finalImg = smallImg.resize(image.size, Image.Resampling.NEAREST)
 
-    width, height = image.size
-    ratio = max_size / max(width, height)
-    width = int(width * ratio)
-    height = int(height * ratio)
-
-    smallImg = image.resize((width, height), resample=Image.Resampling.BILINEAR)
-    image = smallImg.resize(image.size, Image.Resampling.NEAREST)
-
-    buffer = io.BytesIO()
-    image.save(buffer, format="PNG")
-    buffer.seek(0)
-    return buffer
+        buffer = io.BytesIO()
+        finalImg.save(buffer, format="PNG")
+        buffer.seek(0)
+        logging.info("Pixelated image generated successfully.")
+        return buffer
+    except Exception as e:
+        logging.error(f"Critical error processing image: {e}")
+        return None
 
 
 ## Response form
-class ResponseForm(discord.ui.Modal, title="Adivina el campeón"):
+class ResponseForm(discord.ui.Modal, title="Adivina el campeon"):
     response = discord.ui.TextInput(
-        label="Nombre del campeón",
+        label="Nombre del campeon",
         style=discord.TextStyle.short,
-        placeholder="Escribe aquí...",
+        placeholder="Escribe aqui...",
         required=True,
     )
 
@@ -518,8 +516,12 @@ class ResponseForm(discord.ui.Modal, title="Adivina el campeón"):
 
     async def on_submit(self, interaction: discord.Interaction):
         intento = normalize(self.response.value)
+        logging.info(
+            f"Attempt by {interaction.user.name}: '{intento}' - Expected: '{self.correctChamp}'"
+        )
+
         if intento == self.correctChamp:
-            resultado = f"VAMONOOOOOO, {interaction.user.mention} lo adivinó"
+            resultado = f"VAMONOOOOOO, {interaction.user.mention} lo adivino"
         else:
             resultado = f"Mu Malo, {interaction.user.mention} no le sabe"
 
@@ -533,7 +535,7 @@ class GameView(discord.ui.View):
         self.champ = champ
 
     @discord.ui.button(
-        label="-------------- Adivina el campeón --------------",
+        label="-------------- Adivina el campeon --------------",
         style=discord.ButtonStyle.primary,
     )
     async def boton_adivinar(
@@ -544,41 +546,86 @@ class GameView(discord.ui.View):
 
 ## Random Champ
 async def randomChamp():
+    logging.info("Searching for champion in Riot API...")
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                "https://ddragon.leagueoflegends.com/api/versions.json"
+            ) as resp:
+                if resp.status != 200:
+                    return None, None
+                version = (await resp.json())[0]
+
+            url = f"https://ddragon.leagueoflegends.com/cdn/{version}/data/es_ES/champion.json"
+            async with session.get(url) as resp:
+                if resp.status != 200:
+                    return None, None
+                champions = list((await resp.json())["data"].keys())
+
+            champ = random.choice(champions)
+
+            url = f"https://ddragon.leagueoflegends.com/cdn/{version}/data/es_ES/champion/{champ}.json"
+            async with session.get(url) as resp:
+                if resp.status != 200:
+                    return None, None
+                skins = (await resp.json())["data"][champ]["skins"]
+                skins = [skin["num"] for skin in skins]
+
+            return champ, skins
+    except Exception as e:
+        logging.error(f"Exception in randomChamp: {e}")
+        return None, None
+
+
+## Download Image
+async def downloadChampImg(champ: str, skins: list) -> bytes | None:
     async with aiohttp.ClientSession() as session:
-        async with session.get(
-            "https://ddragon.leagueoflegends.com/api/versions.json"
-        ) as resp:
-            versions = await resp.json()
-            version = versions[0]
+        for i in range(5):
+            skin_num = random.choice(skins)
+            url = f"https://ddragon.leagueoflegends.com/cdn/img/champion/splash/{champ}_{skin_num}.jpg"
+            logging.info(f"Attempt {i + 1}: Downloading skin {skin_num} of {champ}...")
 
-        url = f"https://ddragon.leagueoflegends.com/cdn/{version}/data/es_ES/champion.json"
+            async with session.get(url) as resp:
+                if resp.status == 200:
+                    return await resp.read()
+                logging.warning(
+                    f"Error {resp.status} on skin {skin_num}. Trying another."
+                )
+
+        logging.error("5 failed attempts. Forcing base skin (0).")
+        url = (
+            f"https://ddragon.leagueoflegends.com/cdn/img/champion/splash/{champ}_0.jpg"
+        )
         async with session.get(url) as resp:
-            champs = await resp.json()
-            champions = list(champs["data"].keys())
-
-        champ = random.choice(champions)
-
-        url = f"https://ddragon.leagueoflegends.com/cdn/{version}/data/es_ES/champion/{champ}.json"
-        async with session.get(url) as resp:
-            data = await resp.json()
-            skins = data["data"][champ]["skins"]
-
-        skin = random.choice(skins)["num"]
-
-        champUrl = f"https://ddragon.leagueoflegends.com/cdn/img/champion/splash/{champ}_{skin}.jpg"
-
-        return champUrl, champ
+            if resp.status == 200:
+                return await resp.read()
+    return None
 
 
 @bot.command()
 async def pruebaSecreta(ctx):
-    url, champ = await randomChamp()
-    buffer = await pixelateImage(url, 64)
+    logging.info(
+        f"Starting pruebaSecreta command by {ctx.author.name} in channel {ctx.channel.id}"
+    )
 
-    if not buffer:
-        await ctx.send("Algo ha salido mal")
+    champ, skins = await randomChamp()
+    if not champ or not skins:
+        await ctx.send("Algo ha salido mal conectando con Riot.")
         return
 
+    champImg = await downloadChampImg(champ, skins)
+    if not champImg:
+        await ctx.send(
+            "Falló la descarga de la imagen del campeón tras agotar reintentos."
+        )
+        return
+
+    buffer = pixelateImage(champImg, 64)
+    if not buffer:
+        await ctx.send("Algo ha salido mal procesando la imagen localmente.")
+        return
+
+    logging.info("Sending final minigame message to channel.")
     img = discord.File(fp=buffer, filename="pixel.png")
     gameView = GameView(champ)
     await ctx.send(content="# Jueguito de Adivinanza", file=img, view=gameView)
