@@ -10,6 +10,8 @@ import random
 import asyncio
 import sys
 import aiohttp
+import io
+from PIL import Image
 
 # Load environment variables
 load_dotenv()
@@ -467,6 +469,25 @@ async def bingbong(ctx: commands.Context):
         await voice_client.disconnect()
     else:
         await ctx.send("🕰️ Bing Bong 🕰️")
+
+
+# Daily Game
+## Pixelate Image
+async def pixelateImage(url):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as resp:
+            if resp.status != 200:
+                return None
+            datos = await resp.read()
+
+    image = Image.open(io.BytesIO(datos))
+    smallImg = image.resize((32, 32), resample=Image.Resampling.BILINEAR)
+    image = smallImg.resize(image.size, Image.Resampling.NEAREST)
+
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    buffer.seek(0)
+    return buffer
 
 
 # Run the bot
