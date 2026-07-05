@@ -28,7 +28,7 @@ intents.members = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 
-# Scheduled task for bingbong playing every hour
+# Task for bingbong playing every hour
 async def globalBingBong():
     for guild in bot.guilds:
         for vc in guild.voice_channels:
@@ -59,12 +59,10 @@ async def globalBingBong():
 ## Event when the bot is ready
 @bot.event
 async def on_ready():
-    logging.info("Starting global BingBong task:")
+    logging.info("Starting global BingBong")
 
-    if await globalBingBong():
-        logging.info("Finished successfully global BingBong Task")
-    else:
-        logging.info("Finished successfully global BingBong Task")
+    await globalBingBong()
+    logging.info("Finished global BingBong")
 
     await bot.close()
 

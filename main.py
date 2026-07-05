@@ -602,6 +602,7 @@ async def downloadChampImg(champ: str, skins: list) -> bytes | None:
     return None
 
 
+"""
 @bot.command()
 async def pruebaSecreta(ctx):
     logging.info(
@@ -629,7 +630,7 @@ async def pruebaSecreta(ctx):
     img = discord.File(fp=buffer, filename="pixel.png")
     gameView = GameView(champ)
     await ctx.send(content="# Jueguito de Adivinanza", file=img, view=gameView)
-
+"""
 
 # Run the bot
 if __name__ == "__main__":
