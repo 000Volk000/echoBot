@@ -68,6 +68,7 @@ jobs:
 
           sed -i "s|image: ${{ env.IMAGE_NAME }}:.*|image: ${{ env.IMAGE_NAME }}:$NEW_TAG|g" "$TARGET_DIR/deployment.yaml"
           sed -i "s|image: ${{ env.IMAGE_NAME }}:.*|image: ${{ env.IMAGE_NAME }}:$NEW_TAG|g" "$TARGET_DIR/bingbong-cronjob.yaml"
+          sed -i "s|image: ${{ env.IMAGE_NAME }}:.*|image: ${{ env.IMAGE_NAME }}:$NEW_TAG|g" "$TARGET_DIR/domingo-cronjob.yaml"
 
       - name: Commit and push changes
         run: |
